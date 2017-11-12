@@ -35,7 +35,10 @@ Plugin 'scrooloose/nerdtree'
 Plugin 'jistr/vim-nerdtree-tabs'
 Plugin 'kien/ctrlp.vim'
 Plugin 'tpope/vim-fugitive'
+Plugin 'ntpeters/vim-better-whitespace'
 Plugin 'Lokaltog/powerline', {'rtp': 'powerline/bindings/vim/'}
+Plugin 'fatih/vim-go'
+Plugin 'gregsexton/gitv'
 
 "------------------------------------------------------------
 
@@ -263,7 +266,7 @@ set whichwrap+=<,>,h,l
 " Ignore case when searching
 set ignorecase
 
-" When searching try to be smart about cases 
+" When searching try to be smart about cases
 set smartcase
 
 " Highlight search results
@@ -290,7 +293,13 @@ set t_vb=
 set tm=500
 
 " System clipboard
-set clipboard=unnamed
+"set clipboard=unnamedp
+
+" Commands to copy and paste from the clipboard
+"nmap <c-v> :set paste<CR>:r !pbpaste<CR>:set nopaste<CR>
+"imap <c-v> <Esc>:set paste<CR>:r !pbpaste<CR>:set nopaste<CR>
+"nmap <c-c> :.w !pbcopy<CR><CR>
+"vmap <c-c> :w !pbcopy<CR><CR>
 
 "split navigations
 nnoremap <C-J> <C-W><C-J>
@@ -314,8 +323,10 @@ if has('gui_running')
   set background=dark
   colorscheme solarized
 else
-  colorscheme zenburn
+  colorscheme default
 endif
+
+hi Visual term=reverse cterm=reverse guibg=Grey
 
 " For solarized switch between light and dark
 call togglebg#map("<F5>")
@@ -381,12 +392,12 @@ set smartcase                   " ... unless they contain at least one capital l
 """""""""""""""""""""""""""""""
 "PEP8 for python
 au BufNewFile,BufRead *.py
-    \ set tabstop=4
-    \ set softtabstop=4
-    \ set shiftwidth=4
-    \ set textwidth=79
-    \ set expandtab
-    \ set autoindent
+    \ set tabstop=4 |
+    \ set softtabstop=4 |
+    \ set shiftwidth=4 |
+    \ set textwidth=79 |
+    \ set expandtab |
+    \ set autoindent |
     \ set fileformat=unix
 
 set encoding=utf-8
@@ -402,20 +413,21 @@ let python_highlight_all=1
 "  execfile(activate_this, dict(__file__=activate_this))
 "EOF
 
+"integrating pylint
+autocmd FileType python set makeprg=pylint\ --reports=n\ --msg-template=\"{path}:{line}:\ {msg_id}\ {symbol},\ {obj}\ {msg}\"\ %:p
+autocmd FileType python set errorformat=%f:%l:\ %m
+
 " Hide .pyrc files
 let NERDTreeIgnore=['\.pyc$', '\~$'] "ignore files in NERDTree
 
-" Highlight white spaces
-au BufRead,BufNewFile *.py,*.pyw,*.c,*.h match BadWhitespace /\s\+$/
-
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" CSCOPE settings for vim           
+" CSCOPE settings for vim
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 "
 " This file contains some boilerplate settings for vim's cscope interface,
 " plus some keyboard mappings that I've found useful.
 "
-" USAGE: 
+" USAGE:
 " -- vim 6:     Stick this file in your ~/.vim/plugin directory (or in a
 "               'plugin' directory in some other directory that is in your
 "               'runtimepath'.
@@ -423,7 +435,7 @@ au BufRead,BufNewFile *.py,*.pyw,*.c,*.h match BadWhitespace /\s\+$/
 " -- vim 5:     Stick this file somewhere and 'source cscope.vim' it from
 "               your ~/.vimrc file (or cut and paste it into your .vimrc).
 "
-" NOTE: 
+" NOTE:
 " These key maps use multiple keystrokes (2 or 3 keys).  If you find that vim
 " keeps timing you out before you can complete them, try changing your timeout
 " settings, as explained below.
@@ -435,11 +447,11 @@ au BufRead,BufNewFile *.py,*.pyw,*.c,*.h match BadWhitespace /\s\+$/
 
 
 " This tests to see if vim was configured with the '--enable-cscope' option
-" when it was compiled.  If it wasn't, time to recompile vim... 
+" when it was compiled.  If it wasn't, time to recompile vim...
 if has("cscope")
 
     """"""""""""" Standard cscope/vim boilerplate
-    set csprg=/usr/bin/cscope
+    set csprg=/usr/local/bin/cscope
     " check cscope for definition of a symbol before checking ctags: set to 1
     " if you want the reverse search order.
     set csto=0
@@ -448,15 +460,15 @@ if has("cscope")
 
     " add any cscope database in current directory
     if filereadable("cscope.out")
-        cs add cscope.out  
-    "else add the database pointed to by environment variable 
+        cs add cscope.out
+    "else add the database pointed to by environment variable
     elseif $CSCOPE_DB !=""
         cs add $CSCOPE_DB
     endif
 
     " show msg when any other cscope db added
     set csverb
-    
+
     "By setting 'cscopetag', we have effectively replaced all instances of the :tag
     "command with :cstag.  This includes :tag, Ctrl-], and vim -t.  In doing
     "this, the regular tag command not only searches your ctags generated tag
@@ -494,7 +506,7 @@ if has("cscope")
     " diplays your search result in the new window, and one that does the same
     " thing, but does a vertical split instead (vim 6 only).
     "
-   
+
     nmap <C-\>s :cs find s <C-R>=expand("<cword>")<CR><CR>
     nmap <C-\>g :cs find g <C-R>=expand("<cword>")<CR><CR>
     nmap <C-\>c :cs find c <C-R>=expand("<cword>")<CR><CR>
@@ -534,7 +546,7 @@ if has("cscope")
     " You may find that too short with the above typemaps.  If so, you should
     " either turn off mapping timeouts via 'notimeout'.
     "
-    "set notimeout 
+    "set notimeout
     "
     " Or, you can keep timeouts, by uncommenting the timeoutlen line below,
     " with your own personal favorite value (in milliseconds):
@@ -547,7 +559,7 @@ if has("cscope")
     " delays as vim waits for a keystroke after you hit ESC (it will be
     " waiting to see if the ESC is actually part of a key code like <F1>).
     "
-    "set ttimeout 
+    "set ttimeout
     "
     " personally, I find a tenth of a second to work well for key code
     " timeouts. If you experience problems and have a slow terminal or network
